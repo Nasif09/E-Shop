@@ -1,19 +1,78 @@
-import React from 'react'
+import React, { useState } from 'react'
 import './CSS/LoginSignup.css'
 
 
-const LoginSignup = () => {
+ const LoginSignup = () => {
+  const [State, setState] = useState("Login");
+
+  const [formData, setFormData] = useState({
+    username:"",
+    password:"",
+    email:""
+  })
+
+  const changeHandler= (e) => {
+    setFormData({...formData, [e.target.name]:e.target.value})
+  }
+  
+  const Login = async() =>{
+    console.log("Login executed",formData);
+    let responseData;
+    await fetch('http://localhost:4000/login',{
+      method: 'POST',
+      headers:{
+        Accept: 'application/form-data',
+        'Content-Type':'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+    .then((res)=> res.json())
+    .then((data)=>responseData=data)
+
+    if(responseData.success){
+      localStorage.setItem('auth-token',responseData.token);
+      window.location.replace("/");
+    }else{
+      alert("There is no user in this email and password")
+    }
+  }
+  
+  const Signup = async() =>{
+    console.log("Signup executed",formData);
+    let responseData;
+    await fetch('http://localhost:4000/signup',{
+      method: 'POST',
+      headers:{
+        Accept: 'application/form-data',
+        'Content-Type':'application/json',
+      },
+      body: JSON.stringify(formData),
+    })
+    .then((res)=> res.json())
+    .then((data)=>responseData=data)
+
+    if(responseData.success){
+      localStorage.setItem('auth-token',responseData.token);
+      window.location.replace("/");
+    }else{
+      alert(responseData.errors)
+    }
+  }
+
   return (
     <div className="loginsignup">
       <div className="loginsignup-container">
-        <h1>Sign Up</h1>
+        <h1>{State}</h1>
         <div className="loginsignup-fields">
-          <input type="text" placeholder='Your Name' />
-          <input type="text" placeholder='Email Address' />
-          <input type="text" placeholder='Password' />
+          {State ==="Signup" ? <input name='username' value={formData.username} onChange={changeHandler} type="text" placeholder='Your Name' /> : <></>}
+          <input name='email' value={formData.email} onChange={changeHandler} type="text" placeholder='Email Address' />
+          <input name='password' value={formData.password} onChange={changeHandler} type="text" placeholder='Password' />
         </div>
-        <button>Continue</button>
-        <p className='loginsignup-login'>Already have an Account?<span>Login here</span></p>
+        <button onClick={()=>{State==="Login" ? Login() : Signup()}}>Continue</button>
+        {State === "Signup" 
+        ? <p className='loginsignup-login'>Already have an Account? <span onClick={()=>{setState("Login")}}>Login here</span></p> 
+        : <p className='loginsignup-login'>Create an Account ?<span onClick={()=>{setState("Signup")}}>Click here</span></p>
+        }     
         <div className="loginsignup-agree">
           <input type="checkbox" name='' id=''/>
           <p>By continuing, I agree to the term of use & privacy</p>
